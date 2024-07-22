@@ -12,16 +12,10 @@ import datetime
 app = Flask(__name__)
 
 # Firebase configuration
-cred = credentials.Certificate("/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/saphackproject-firebase-adminsdk-za5qq-4a5b2c9d60.json")
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://saphackproject-default-rtdb.firebaseio.com/',
-    'storageBucket': 'saphackproject.appspot.com'
-})
+
 
 # Configure Google Generative AI API
-import google.generativeai as genai
-genai.configure(api_key='')
-model = genai.GenerativeModel('gemini-1.5-flash')
+
 
 # Mapping of SDG goals to image file paths
 sdg_images = {
