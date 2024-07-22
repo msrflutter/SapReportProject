@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: flask-app
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /app/saphackproject-firebase-adminsdk-za5qq-4a5b2c9d60.json
