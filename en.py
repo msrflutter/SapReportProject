@@ -20,7 +20,7 @@ firebase_admin.initialize_app(cred, {
 
 # Configure Google Generative AI API
 import google.generativeai as genai
-genai.configure(api_key='AIzaSyBNd9o9WTvrPsh9QIcNx3SKtaspghfJBW8')
+genai.configure(api_key='')
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Mapping of SDG goals to image file paths
