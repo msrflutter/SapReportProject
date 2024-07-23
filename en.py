@@ -1,4 +1,3 @@
-from flask import Flask, jsonify, request
 import firebase_admin
 from firebase_admin import credentials, storage, db
 import os
@@ -7,41 +6,37 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, ListFlowable, Image
 import datetime
+import google.generativeai as genai
 
-# Initialize Flask app
-app = Flask(__name__)
-
-# Firebase configuration
-cred = credentials.Certificate("/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/saphackproject-firebase-adminsdk-za5qq-4a5b2c9d60.json")
+'./saphackproject-firebase-adminsdk-za5qq-4a5b2c9d60.json")
 firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://saphackproject-default-rtdb.firebaseio.com/',
     'storageBucket': 'saphackproject.appspot.com'
 })
 
 # Configure Google Generative AI API
-import google.generativeai as genai
 genai.configure(api_key='AIzaSyBNd9o9WTvrPsh9QIcNx3SKtaspghfJBW8')
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Mapping of SDG goals to image file paths
 sdg_images = {
-    "Goal 1": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/1.png",
-    "Goal 2": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/2.png",
-    "Goal 3": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/3.png",
-    "Goal 4": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/4.png",
-    "Goal 5": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/5.png",
-    "Goal 6": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/6.png",
-    "Goal 7": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/7.png",
-    "Goal 8": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/8.png",
-    "Goal 9": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/9.png",
-    "Goal 10": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/10.png",
-    "Goal 11": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/11.png",
-    "Goal 12": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/12.png",
-    "Goal 13": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/13.png",
-    "Goal 14": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/14.png",
-    "Goal 15": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/15.png",
-    "Goal 16": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/16.png",
-    "Goal 17": "/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/17.png"
+    "Goal 1": "./1.png",
+    "Goal 2": "./2.png",
+    "Goal 3": "./3.png",
+    "Goal 4": "./4.png",
+    "Goal 5": "./5.png",
+    "Goal 6": "./6.png",
+    "Goal 7": "./7.png",
+    "Goal 8": "./8.png",
+    "Goal 9": "./9.png",
+    "Goal 10": "./10.png",
+    "Goal 11": "./11.png",
+    "Goal 12": "./12.png",
+    "Goal 13": "./13.png",
+    "Goal 14": "./14.png",
+    "Goal 15": "./15.png",
+    "Goal 16": "./16.png",
+    "Goal 17": "./17.png"
 }
 
 # Define the PDFGenerator class using ReportLab
@@ -56,10 +51,10 @@ class PDFGenerator:
         from reportlab.pdfbase.ttfonts import TTFont
         from reportlab.pdfbase import pdfmetrics
 
-        pdfmetrics.registerFont(TTFont('DejaVuSans', '/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/DejaVuSans.ttf'))
-        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', '/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/dejavu-sans-bold.ttf'))
-        pdfmetrics.registerFont(TTFont('DejaVuSans-Italic', '/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/dejavu-sans-oblique.ttf'))
-        pdfmetrics.registerFont(TTFont('DejaVuSans-BoldItalic', '/Users/amogh1/PycharmProjects/pythonProject/pdfcreate/dejavu-sans-boldoblique.ttf'))
+        pdfmetrics.registerFont(TTFont('DejaVuSans', './DejaVuSans.ttf'))
+        pdfmetrics.registerFont(TTFont('DejaVuSans-Bold', './dejavu-sans-bold.ttf'))
+        pdfmetrics.registerFont(TTFont('DejaVuSans-Italic', './dejavu-sans-oblique.ttf'))
+        pdfmetrics.registerFont(TTFont('DejaVuSans-BoldItalic', './dejavu-sans-boldoblique.ttf'))
 
     def add_title(self, title):
         title_style = self.styles['Title']
@@ -133,11 +128,9 @@ class PDFGenerator:
     def build_pdf(self):
         self.doc.build(self.elements)
 
-# API endpoint to generate PDF
-@app.route('/generate-pdf', methods=['POST'])
-def generate_pdf():
+# Function to generate PDF and upload to Firebase
+def generate_pdf(data):
     try:
-        data = request.json
         prompts = data.get("prompts", [])
 
         # Generate content for each prompt
@@ -193,15 +186,21 @@ def generate_pdf():
         ref = db.reference('py/')
         ref.push(report_data)
 
-        return jsonify({
+        return {
             "message": "PDF uploaded and metadata saved to Firebase successfully.",
             "signed_url": signed_url
-        })
+        }
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return {"error": str(e)}
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Example usage
+data = {
+    "prompts": [
+        {"description": "Describe the impact of climate change.", "sdgs": ["Goal 13: Climate Action"]},
+        {"description": "Discuss the importance of quality education.", "sdgs": ["Goal 4: Quality Education"]}
+    ]
+}
 
-
+response = generate_pdf(data)
+print(response)
